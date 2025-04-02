@@ -6,6 +6,11 @@
 :: author: Greg Grzegorz Wojtanowicz
 :: email: wojtanowiczgrzegorz@gmail.com
 ::
+:: changelog
+:: 0.0.3
+::  - "zamowienia" replaced with "ZAM" and "____" replaced wit "__" - to short down the printed label
+::  - support for 15x21 added
+::
 ::===============================================================
 
 
@@ -24,6 +29,7 @@ set output_dir_produkty=%output_dir_name%\produkty
 set output_dir_pliki=%output_dir_name%\pliki
 set output_dir_10x15=%output_dir_name%\10x15
 set output_dir_15x23=%output_dir_name%\15x23
+set output_dir_15x21=%output_dir_name%\15x21
 set output_dir_20x30=%output_dir_name%\20x30
 set output_dir_30x45=%output_dir_name%\30x45
 set output_dir_nieobsluzone_przez_program=%output_dir_name%\nieobsluzone_przez_program
@@ -43,6 +49,7 @@ for /R %%J in (*.jpg) do (
     echo --------------------------- end of file ---------------------------
 )
 
+pause
 exit /B 0
 
 :create-output-directory-if-not-exists
@@ -60,6 +67,7 @@ exit /B 0
         md %output_dir_pliki%
         md %output_dir_10x15%
         md %output_dir_15x23%
+        md %output_dir_15x21%
         md %output_dir_20x30%
         md %output_dir_30x45%
         md %output_dir_nieobsluzone_przez_program%
@@ -152,6 +160,7 @@ goto:eof
 
     set format_10x15_keyword=10x15
     set format_15x23_keyword=15x23
+    set format_15x21_keyword=15x21
     set format_20x30_keyword=20x30
     set format_30x45_keyword=30x45
 
@@ -165,16 +174,21 @@ goto:eof
             rem it is 15x23
             call :copy-jpg-file "%relative_path%%local_file_name%" "%output_dir_15x23%\%returned_new_name%" %number_of_copies%
         ) else (
-            if not "%local_file_path_with_name_and_extension%"=="!local_file_path_with_name_and_extension:%format_20x30_keyword%=!" (
-                rem it is 20x30
-                call :copy-jpg-file "%relative_path%%local_file_name%" "%output_dir_20x30%\%returned_new_name%" %number_of_copies%
+            if not "%local_file_path_with_name_and_extension%"=="!local_file_path_with_name_and_extension:%format_15x21_keyword%=!" (
+                rem it is 15x21
+                call :copy-jpg-file "%relative_path%%local_file_name%" "%output_dir_15x21%\%returned_new_name%" %number_of_copies%
             ) else (
-                if not "%local_file_path_with_name_and_extension%"=="!local_file_path_with_name_and_extension:%format_30x45_keyword%=!" (
-                    rem it is 30x45
-                    call :copy-jpg-file "%relative_path%%local_file_name%" "%output_dir_30x45%\%returned_new_name%" %number_of_copies%
+                if not "%local_file_path_with_name_and_extension%"=="!local_file_path_with_name_and_extension:%format_20x30_keyword%=!" (
+                    rem it is 20x30
+                    call :copy-jpg-file "%relative_path%%local_file_name%" "%output_dir_20x30%\%returned_new_name%" %number_of_copies%
                 ) else (
-                    rem it is not supported
-                    call :copy-jpg-file "%relative_path%%local_file_name%" "%output_dir_nieobsluzone_przez_program%\%returned_new_name%" %number_of_copies%
+                    if not "%local_file_path_with_name_and_extension%"=="!local_file_path_with_name_and_extension:%format_30x45_keyword%=!" (
+                        rem it is 30x45
+                        call :copy-jpg-file "%relative_path%%local_file_name%" "%output_dir_30x45%\%returned_new_name%" %number_of_copies%
+                    ) else (
+                        rem it is not supported
+                        call :copy-jpg-file "%relative_path%%local_file_name%" "%output_dir_nieobsluzone_przez_program%\%returned_new_name%" %number_of_copies%
+                    )
                 )
             )
         )    
@@ -242,8 +256,11 @@ goto:eof
     set local_file_name=%~1
     set relative_path=%~2
     
-    set replaced_slash=%relative_path:\=____%
-    set parsed_name=%replaced_slash%%local_file_name%
+    set replaced_slash=%relative_path:\=__%
+
+    rem @g.wojtanowicz to short down the label, that's printed in the back of the photo, replace root directory if it's 'zamowienia'
+    set replaced_zamowienia=%replaced_slash:zamowienia=ZAM%
+    set parsed_name=%replaced_zamowienia%%local_file_name%
 
     rem @g.wojtanowicz read more why this: https://stackoverflow.com/questions/11419046/how-do-i-return-a-value-from-a-function-in-a-batch-file
     set "%~3=%parsed_name%"
